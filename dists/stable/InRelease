@@ -1,26 +1,27 @@
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
-Origin: dislocker-android
-Label: dislocker-android
-Suite: stable
-Codename: stable
-Date: Fri, 21 Aug 2026 13:21:19 +0000
-Architectures: aarch64
-Components: main
-Description: Dislocker APT repository for Termux Android ARM64
-
+Date: Fri, 21 Aug 2026 15:05:04 +0000
 MD5Sum:
- b90dc1d42323f240d5fe59f42ae26cee 575 main/binary-aarch64/Packages
- 79caba2293e7a76a747f6260ea9d8675 415 main/binary-aarch64/Packages.gz
-
+ 834870e3ef2b30380b713be4fc895f98               38 Release
+ 684fbd72c1292e904c8f4acb5a7722b7              575 main/binary-aarch64/Packages
+ 03c9b82bc79354de06b0af670a992e49              416 main/binary-aarch64/Packages.gz
+SHA1:
+ 2273c25fa8593e328b17b5f5b534795c011bdf1e               38 Release
+ f73380d6ee61ab14f822415d3749793c903663af              575 main/binary-aarch64/Packages
+ df4c01cc999582d32c06fc4fd690365588c48f82              416 main/binary-aarch64/Packages.gz
 SHA256:
- f3e423b6f598962e504f8f40f36e293bcf54bcf203e18198a20dff9351b4a4d3 575 main/binary-aarch64/Packages
- ce752d58eee712e74d08f6bc5b961c4cabf8c29ae126a449ae86b9cdc97b7555 415 main/binary-aarch64/Packages.gz
+ 0f16e87398d4757be2c452c5e51565b576e61fee2b351b4a0c89c54d6d8f67d1               38 Release
+ c76363a01a3baa72bc6b4a9e5592ff6554dfe4273ecebd0cf7b7d95917ef737f              575 main/binary-aarch64/Packages
+ efe9637961bfffd30a6722242636bc82383db26d970463e30f8d09ca1aa6f0db              416 main/binary-aarch64/Packages.gz
+SHA512:
+ 3e8523c5b7e842588e1170f90b20f52ee0868da902d208b5e36df56c5ea03be7d8a757645aabad1fbb2a6148a5a8672681ab1a32af9bf12dc4dd6e61a750a9e6               38 Release
+ 1e20dba971aa0faf1965c4c9e9b035a6c5523c76434b2114e7db0d8fa1d3660cc9fd5adbb4102807df7963c4cc17bf0b082a0cf382c4bae3b967d04d7a130b1b              575 main/binary-aarch64/Packages
+ 1c7c165074c64a80f4c0795d96f02277d6d3294f9e2c9baa2acc959397d16929a9c49580ba2c97770e25923e40adf0479e14dd609acf6c5a4595a5adb39e672d              416 main/binary-aarch64/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYKAB0WIQR35qUoHfVTjbEqmPKzFJh1ior4pQUCaohQzwAKCRCzFJh1ior4
-pQNIAQCp4IGMUKKd1Q+T3EQ9IkY49iFSqhklHzKgfEC/Hhh7VwD6A7aYLBxQ+79a
-DvdjGHtrGUxPmxG8sDY97X5L9776EAo=
-=Xw4d
+iHUEARYKAB0WIQR35qUoHfVTjbEqmPKzFJh1ior4pQUCaohpIQAKCRCzFJh1ior4
+pd+LAP99+vsWplGLu7iob+9oYw5jyf6fqY5AEj4VUysNWdyjxAEAutK1CtSqwOLK
+cjeIGKQV5Tjm0kw7fP2l5UO/3GXflAg=
+=1xO9
 -----END PGP SIGNATURE-----
