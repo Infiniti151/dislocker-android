@@ -1,0 +1,16 @@
+Origin: dislocker-android
+Label: dislocker-android
+Suite: stable
+Codename: stable
+Date: Fri, 21 Aug 2026 13:21:19 +0000
+Architectures: aarch64
+Components: main
+Description: Dislocker APT repository for Termux Android ARM64
+
+MD5Sum:
+ b90dc1d42323f240d5fe59f42ae26cee 575 main/binary-aarch64/Packages
+ 79caba2293e7a76a747f6260ea9d8675 415 main/binary-aarch64/Packages.gz
+
+SHA256:
+ f3e423b6f598962e504f8f40f36e293bcf54bcf203e18198a20dff9351b4a4d3 575 main/binary-aarch64/Packages
+ ce752d58eee712e74d08f6bc5b961c4cabf8c29ae126a449ae86b9cdc97b7555 415 main/binary-aarch64/Packages.gz
