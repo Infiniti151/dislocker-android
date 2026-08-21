@@ -11,9 +11,9 @@ GREEN='\033[32m'
 NC='\033[0m'
 
 # --- Configuration ---
-WORK_DIR="/workspace"
-INSTALL_DIR="/workspace/output"
-CACHE_DIR="/workspace/cache"
+WORK_DIR="${GITHUB_WORKSPACE:-/workspace}"
+INSTALL_DIR="$WORK_DIR/output"
+CACHE_DIR="$WORK_DIR/cache"
 NDK_VERSION="r29"
 NDK_SRC="$CACHE_DIR/android-ndk-$NDK_VERSION"
 NDK="/opt/android-ndk-$NDK_VERSION"
