@@ -8,7 +8,7 @@ The package provides the Dislocker command-line utilities, including `dislocker`
 
 It was created because Dislocker is not currently available as a package in the official Termux repositories. This project provides a convenient way to install and update Dislocker through a dedicated APT repository for Termux.
 
-## Requirements
+## 📋 Requirements
 
 * Android device with an **ARM64 (`aarch64`)** CPU
 * [Termux](https://termux.dev/)
@@ -19,7 +19,7 @@ It was created because Dislocker is not currently available as a package in the 
 > [!note]
 > This package is intended for rooted Android devices running Termux. Dislocker uses FUSE to expose the decrypted BitLocker filesystem. Root access is required to access BitLocker block devices and mount the resulting filesystem.
 
-## Installation
+## 📦 Installation
 
 ### 1. Install Termux
 
@@ -100,7 +100,7 @@ dislocker --version
 
 You should see the installed Dislocker version.
 
-## Usage
+## 🔧 Usage
 
 Dislocker does not directly mount a BitLocker volume as a normal
 filesystem. It provides two ways to access the decrypted volume:
@@ -299,7 +299,7 @@ You can also check the installed version:
 dislocker --version
 ```
 
-## Android / Termux considerations
+## 🤖 Android / Termux considerations
 
 ### Root access
 
@@ -363,7 +363,7 @@ with links to accessible Android shared-storage locations.
 
 For block devices, however, root permissions are normally required.
 
-## Update
+## 🔄 Update
 
 **Update all Termux packages:**
 
@@ -380,7 +380,7 @@ or:
 pkg upgrade dislocker
 ```
 
-## Uninstallation
+## 🗑️ Uninstallation
 
 **Uninstall `dislocker`:**
 
@@ -406,7 +406,7 @@ rm "$PREFIX/etc/apt/keyrings/dislocker-android.gpg"
 pkg update
 ```
 
-## Building
+## 🏗️ Building
 
 This repository builds Dislocker for Android ARM64 using the Android NDK.
 
@@ -442,7 +442,7 @@ apt-repo/
                 └── dislocker_*.deb
 ```
 
-## Source
+## 📚 Source
 
 This project packages [Dislocker](https://github.com/Aorimn/dislocker) for Android ARM64.
 
@@ -450,7 +450,7 @@ Original Dislocker project:
 
 https://github.com/Aorimn/dislocker
 
-## License
+## 📄 License
 
 See the original [Dislocker](https://github.com/Aorimn/dislocker) project for its licensing information.
 

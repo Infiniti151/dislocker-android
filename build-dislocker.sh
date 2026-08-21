@@ -257,6 +257,7 @@ TERMUX_PREFIX="/data/data/com.termux/files/usr"
 PKG_STAGE="$WORK_DIR/pkg-staging"
 
 APT_REPO_DIR="$WORK_DIR/output/apt-repo"
+REPO_NAME="dislocker-android"
 
 DIST="stable"
 COMPONENT="main"
@@ -385,7 +386,21 @@ gzip -9 -c \
 
 echo -e "${YELLOW}=== Generating Release file ===${NC}"
 
-apt-ftparchive release "$APT_DIST_DIR" > "$APT_DIST_DIR/Release"
+cat > "$WORK_DIR/apt-release.conf" <<EOF
+APT::FTPArchive::Release::Origin "$REPO_NAME";
+APT::FTPArchive::Release::Label "$REPO_NAME";
+APT::FTPArchive::Release::Suite "$DIST";
+APT::FTPArchive::Release::Codename "$DIST";
+APT::FTPArchive::Release::Architectures "$ARCH";
+APT::FTPArchive::Release::Components "$COMPONENT";
+APT::FTPArchive::Release::Description "Dislocker APT repository for Termux Android ARM64";
+EOF
+
+apt-ftparchive \
+    -c "$WORK_DIR/apt-release.conf" \
+    release \
+    "$APT_DIST_DIR" \
+    > "$APT_DIST_DIR/Release"
 
 echo -e "${YELLOW}=== Release file ===${NC}"
 cat "$APT_DIST_DIR/Release"
