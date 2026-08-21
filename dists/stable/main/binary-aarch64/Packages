@@ -4,10 +4,10 @@ Architecture: aarch64
 Maintainer: Infiniti151
 Installed-Size: 1827
 Filename: pool/main/d/dislocker/dislocker_0.0~git20260816.a0d5fb6_aarch64.deb
-Size: 443008
-MD5sum: b37b14b9895335252122fd8af6b5e5bc
-SHA1: 3e3bccbea79e6a78b60641655dec0c199579e1d5
-SHA256: 9114bd28b1178e8b109bb3fd379d64641d5cd58009dc75dcf5548316f7fd7c78
+Size: 442888
+MD5sum: 3f108f54a1ef1638ce70c4ff525bd82e
+SHA1: 84eb426c83f2eea05e7698493e5df5d3f479ecde
+SHA256: 09a937f76ababe9e94d9e2a9f746d9bc260acedb4b152299a9966a6bc6b895fd
 Section: utils
 Priority: optional
 Homepage: https://github.com/Aorimn/dislocker

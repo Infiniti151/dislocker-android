@@ -1,17 +1,24 @@
-Date: Fri, 21 Aug 2026 15:05:04 +0000
+Architectures: aarch64
+Codename: stable
+Components: main
+Date: Fri, 21 Aug 2026 15:35:00 +0000
+Description: Dislocker APT repository for Termux Android ARM64
+Label: dislocker-android
+Origin: dislocker-android
+Suite: stable
 MD5Sum:
- 834870e3ef2b30380b713be4fc895f98               38 Release
- 684fbd72c1292e904c8f4acb5a7722b7              575 main/binary-aarch64/Packages
- 03c9b82bc79354de06b0af670a992e49              416 main/binary-aarch64/Packages.gz
+ db5c735f8b082bd867288c2107ed3cfc              223 Release
+ 6f6bbd32208cd3720edb1300b707db10              575 main/binary-aarch64/Packages
+ 0dcec83028ae80ab0268c9e13d8f7aff              415 main/binary-aarch64/Packages.gz
 SHA1:
- 2273c25fa8593e328b17b5f5b534795c011bdf1e               38 Release
- f73380d6ee61ab14f822415d3749793c903663af              575 main/binary-aarch64/Packages
- df4c01cc999582d32c06fc4fd690365588c48f82              416 main/binary-aarch64/Packages.gz
+ e39a262f6089a64c82dd57dc95feeaabe715388c              223 Release
+ 956cd53886c1e4da48926bd8becc4b0c35c2c9d3              575 main/binary-aarch64/Packages
+ 29716050e09daf09093dd5df2168774e5b56795e              415 main/binary-aarch64/Packages.gz
 SHA256:
- 0f16e87398d4757be2c452c5e51565b576e61fee2b351b4a0c89c54d6d8f67d1               38 Release
- c76363a01a3baa72bc6b4a9e5592ff6554dfe4273ecebd0cf7b7d95917ef737f              575 main/binary-aarch64/Packages
- efe9637961bfffd30a6722242636bc82383db26d970463e30f8d09ca1aa6f0db              416 main/binary-aarch64/Packages.gz
+ 49b3fb5eb05c4ac492cebe7a6707f392b467e2621def27643a3120a1263220ec              223 Release
+ de81f8d3e3dfd11fbcdb519ea891ac9a9c57e17565c7bd699420c86be76a05bb              575 main/binary-aarch64/Packages
+ 7417b37ed29dacb6c94a2fed8ffa26a178ac64957ee630930b1b28df5ed1a37f              415 main/binary-aarch64/Packages.gz
 SHA512:
- 3e8523c5b7e842588e1170f90b20f52ee0868da902d208b5e36df56c5ea03be7d8a757645aabad1fbb2a6148a5a8672681ab1a32af9bf12dc4dd6e61a750a9e6               38 Release
- 1e20dba971aa0faf1965c4c9e9b035a6c5523c76434b2114e7db0d8fa1d3660cc9fd5adbb4102807df7963c4cc17bf0b082a0cf382c4bae3b967d04d7a130b1b              575 main/binary-aarch64/Packages
- 1c7c165074c64a80f4c0795d96f02277d6d3294f9e2c9baa2acc959397d16929a9c49580ba2c97770e25923e40adf0479e14dd609acf6c5a4595a5adb39e672d              416 main/binary-aarch64/Packages.gz
+ 59d3396b2ac9ad4c47039dfc2926d4ad90685add0fbb5c25e87e7771cb7de077a9df64e0b2d01b6e7bc0e4f4c38960d34c775f948038b31505f6db14827d90ab              223 Release
+ b6bacb3328e3fb210e4755af088e5d1592ebed856b4d0f0582ceb116200ed5776e6bb4e4d8313c5b067f8ed23701025a086c0d4ea688347f7ab3bfd41f99bca9              575 main/binary-aarch64/Packages
+ 10c70f36bf140515bc02342891f668b132d6e1e4d9686ab7cc21025783242b7921a4c2ec107f38289e85f0b1afce4accc6156bbb2a8c30776e99f6cd7a69e92c              415 main/binary-aarch64/Packages.gz
