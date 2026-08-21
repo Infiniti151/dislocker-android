@@ -86,20 +86,26 @@ jobs:
 
           rm -rf "$APT_WORKTREE"
 
+          echo "=== Fetching apt-repo branch ==="
+
           if git fetch origin apt-repo:refs/remotes/origin/apt-repo; then
-            echo "Checking out existing apt-repo branch..."
+            echo "Existing apt-repo branch found."
 
             git worktree add \
               "$APT_WORKTREE" \
               origin/apt-repo
           else
-            echo "Creating new apt-repo branch..."
+            echo "No apt-repo branch exists. Creating it."
 
-            git worktree add --detach "$APT_WORKTREE"
+            git worktree add \
+              --detach \
+              "$APT_WORKTREE" \
+              HEAD
 
             cd "$APT_WORKTREE"
 
             git checkout --orphan apt-repo
+
             git rm -rf . 2>/dev/null || true
           fi
 
@@ -108,7 +114,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          echo "=== Replacing repository contents ==="
+          echo "=== Clearing old repository contents ==="
 
           find "$APT_WORKTREE" \
             -mindepth 1 \
@@ -116,21 +122,46 @@ jobs:
             ! -name ".git" \
             -exec rm -rf {} +
 
+          echo "=== Copying generated APT repository ==="
+
           cp -a \
             "$GITHUB_WORKSPACE/output/apt-repo/." \
             "$APT_WORKTREE/"
 
+          echo "=== Repository contents ==="
+
+          find "$APT_WORKTREE" \
+            -type f \
+            -print \
+            | sort
+
+          echo "=== Git status ==="
+
+          git status --short
+
           git add .
+
+          echo "=== Staged changes ==="
+
+          git diff --cached --stat
 
           if git diff --cached --quiet; then
             echo "No changes to apt-repo branch."
             exit 0
           fi
 
+          echo "=== Committing APT repository ==="
+
           git commit \
             -m "Update APT repository for ${GITHUB_REF_NAME}"
 
+          echo "=== Pushing apt-repo branch ==="
+
           git push origin HEAD:apt-repo
+
+          echo "=== Verifying remote apt-repo branch ==="
+
+          git ls-remote --heads origin apt-repo
 
   deploy:
     needs: build
