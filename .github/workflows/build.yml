@@ -1,0 +1,147 @@
+name: Build & Publish Dislocker Termux APT Repo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apt-repo
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/infiniti151/dislocker-android-builder:latest
+      options: --user root --shm-size=2gb
+
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+      artifact-metadata: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Restore existing APT repository
+        run: |
+          set -eu
+
+          mkdir -p output/apt-repo
+
+          if git fetch origin apt-repo:refs/remotes/origin/apt-repo; then
+            echo "Restoring existing APT repository..."
+
+            git archive origin/apt-repo \
+              | tar -x -C output/apt-repo
+          else
+            echo "No apt-repo branch exists yet."
+            echo "Starting with an empty APT repository."
+          fi
+
+          echo "=== Restored APT repository ==="
+          find output/apt-repo -type f -print | sort || true
+
+      - name: Import GPG signing key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Build package and APT repository
+        env:
+          GPG_KEY: ${{ steps.import-gpg.outputs.keyid }}
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+        run: |
+          set -eu
+
+          chmod +x ./build-dislocker.sh
+          ./build-dislocker.sh
+
+      - name: Generate artifact attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ env.DEB_FILE }}
+
+      - name: Upload APT repository
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: output/apt-repo
+
+      - name: Update apt-repo branch
+        run: |
+          set -eu
+
+          APT_WORKTREE="/tmp/apt-repo"
+
+          rm -rf "$APT_WORKTREE"
+
+          if git fetch origin apt-repo:refs/remotes/origin/apt-repo; then
+            echo "Checking out existing apt-repo branch..."
+
+            git worktree add \
+              "$APT_WORKTREE" \
+              origin/apt-repo
+          else
+            echo "Creating new apt-repo branch..."
+
+            git worktree add --detach "$APT_WORKTREE"
+
+            cd "$APT_WORKTREE"
+
+            git checkout --orphan apt-repo
+            git rm -rf . 2>/dev/null || true
+          fi
+
+          cd "$APT_WORKTREE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          echo "=== Replacing repository contents ==="
+
+          find "$APT_WORKTREE" \
+            -mindepth 1 \
+            -maxdepth 1 \
+            ! -name ".git" \
+            -exec rm -rf {} +
+
+          cp -a \
+            "$GITHUB_WORKSPACE/output/apt-repo/." \
+            "$APT_WORKTREE/"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to apt-repo branch."
+            exit 0
+          fi
+
+          git commit \
+            -m "Update APT repository for ${GITHUB_REF_NAME}"
+
+          git push origin HEAD:apt-repo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

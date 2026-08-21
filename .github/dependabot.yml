@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # GitHub Actions → ci(deps)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    assignees:
+      - "Infiniti151"
+    groups:
+      github-actions-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci(deps)"
+    target-branch: "main"
