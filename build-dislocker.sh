@@ -46,17 +46,17 @@ fi
 
 TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64"
 
-echo "Granting execution permissions to toolchain binaries..."
+echo -e "${YELLOW}Granting execution permissions to toolchain binaries...${NC}"
 chmod -R +x "$TOOLCHAIN/bin/"
 
 # Validate that clang can actually execute on this filesystem
 if ! "$TOOLCHAIN/bin/clang" --version > /dev/null 2>&1; then
-    echo "Error: Clang binary is not executable. Check file attributes:"
+    echo -e "${RED}Error: Clang binary is not executable. Check file attributes:${NC}"
     file "$TOOLCHAIN/bin/clang" || true
     exit 1
 fi
 
-echo "NDK environment validated successfully in /opt."
+echo -e "${YELLOW}NDK environment validated successfully in /opt.${NC}"
 
 # --- Meson cross-file ---
 cat << EOF > /tmp/android-cross.txt
@@ -78,7 +78,8 @@ echo -e "${CYAN}=== [2/4] Cross-Compiling libfuse 3.x ===${NC}"
 cd "$WORK_DIR"
 
 # Dynamically fetch remote tags, filter for semantic v3.x.x tags, sort, and select the latest
-echo "Detecting latest libfuse v3 release tag..."
+echo -e "${YELLOW}Detecting latest libfuse v3 release tag...${NC}"
+
 LATEST_V3_TAG=$(git ls-remote --tags https://github.com/libfuse/libfuse.git \
   | grep -o 'refs/tags/fuse-3\.[0-9.]*' \
   | cut -d/ -f3 \
@@ -91,7 +92,7 @@ if [ -z "$LATEST_V3_TAG" ]; then
     LATEST_V3_TAG="fuse-3.18.2"
 fi
 
-echo "Selected libfuse Tag: ${LATEST_V3_TAG}"
+echo -e "${YELLOW}Selected libfuse Tag: ${LATEST_V3_TAG}${NC}"
 
 # Clone or checkout the specific tag directly
 if [ ! -d "libfuse" ]; then
@@ -164,7 +165,8 @@ echo -e "${CYAN}=== [2/4] Cross-Compiling mbedTLS 3.x for Android ARM64 ===${NC}
 cd "$WORK_DIR"
 
 # Dynamically fetch remote tags, filter for semantic v3.x.x tags, sort, and select the latest
-echo "Detecting latest mbedTLS v3 release tag..."
+echo -e "${YELLOW}Detecting latest mbedTLS v3 release tag...${NC}"
+
 LATEST_V3_TAG=$(git ls-remote --tags https://github.com/Mbed-TLS/mbedtls.git \
   | grep -o 'refs/tags/v3\.[0-9.]*' \
   | cut -d/ -f3 \
@@ -177,7 +179,7 @@ if [ -z "$LATEST_V3_TAG" ]; then
     LATEST_V3_TAG="v3.6.0"
 fi
 
-echo "Selected mbedTLS Tag: ${LATEST_V3_TAG}"
+echo -e "${YELLOW}Selected mbedTLS Tag: ${LATEST_V3_TAG}${NC}"
 
 # Clone or checkout the specific tag directly
 if [ ! -d "mbedtls" ]; then
@@ -270,6 +272,8 @@ echo "Package version: $DISLOCKER_VERSION"
 # Clean previous package/repository output
 # ---------------------------------------------------------------------------
 
+echo -e "${YELLOW}=== Preparing package and APT repository directories ===${NC}"
+
 rm -rf "$PKG_STAGE"
 
 mkdir -p \
@@ -283,7 +287,7 @@ mkdir -p \
 # Copy binaries
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Copying binaries ===${NC}"
+echo -e "${YELLOW}=== Copying binaries ===${NC}"
 
 cp -f \
     "$INSTALL_DIR/bin/"* \
@@ -293,7 +297,7 @@ cp -f \
 # Copy libraries
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Copying libraries ===${NC}"
+echo -e "${YELLOW}=== Copying libraries ===${NC}"
 
 cp -a \
     "$INSTALL_DIR/lib/libdislocker.so"* \
@@ -307,6 +311,8 @@ cp -a \
 # Permissions
 # ---------------------------------------------------------------------------
 
+echo -e "${YELLOW}=== Setting permissions ===${NC}"
+
 chmod 755 \
     "$PKG_STAGE/$TERMUX_PREFIX/bin/"*
 
@@ -317,7 +323,7 @@ chmod 644 \
 # Debian control file
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Creating package control file ===${NC}"
+echo -e "${YELLOW}=== Creating package control file ===${NC}"
 
 INSTALLED_SIZE="$(du -sk --apparent-size "$PKG_STAGE" | cut -f1)"
 
@@ -338,7 +344,7 @@ EOF
 # Build .deb
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Building .deb ===${NC}"
+echo -e "${YELLOW}=== Building .deb ===${NC}"
 
 DEB_FILE_NAME="dislocker_${DISLOCKER_VERSION}_${ARCH}.deb"
 DEB_FILE="$APT_POOL_DIR/$DEB_FILE_NAME"
@@ -357,7 +363,7 @@ echo "DEB_FILE=$DEB_FILE" >> "$GITHUB_ENV"
 # Generate Packages index
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Generating Packages index ===${NC}"
+echo -e "${YELLOW}=== Generating Packages index ===${NC}"
 
 (
     cd "$APT_REPO_DIR"
@@ -377,81 +383,37 @@ gzip -9 -c \
 # Generate Release metadata
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== [Generating Release file ===${NC}"
+echo -e "${YELLOW}=== Generating Release file ===${NC}"
 
-cd "$APT_DIST_DIR"
+apt-ftparchive release "$APT_DIST_DIR" > "$APT_DIST_DIR/Release"
 
-DATE_RFC2822="$(date -Ru)"
-
-PACKAGES_SIZE="$(stat -c '%s' "$APT_BINARY_DIR/Packages")"
-PACKAGES_GZ_SIZE="$(stat -c '%s' "$APT_BINARY_DIR/Packages.gz")"
-
-PACKAGES_MD5="$(
-    md5sum "$APT_BINARY_DIR/Packages" |
-    awk '{print $1}'
-)"
-
-PACKAGES_GZ_MD5="$(
-    md5sum "$APT_BINARY_DIR/Packages.gz" |
-    awk '{print $1}'
-)"
-
-PACKAGES_SHA256="$(
-    sha256sum "$APT_BINARY_DIR/Packages" |
-    awk '{print $1}'
-)"
-
-PACKAGES_GZ_SHA256="$(
-    sha256sum "$APT_BINARY_DIR/Packages.gz" |
-    awk '{print $1}'
-)"
-
-cat > "$APT_DIST_DIR/Release" <<EOF
-Origin: dislocker-android
-Label: dislocker-android
-Suite: $DIST
-Codename: $DIST
-Date: $DATE_RFC2822
-Architectures: $ARCH
-Components: $COMPONENT
-Description: Dislocker APT repository for Termux Android ARM64
-
-MD5Sum:
- $PACKAGES_MD5 $PACKAGES_SIZE $COMPONENT/binary-$ARCH/Packages
- $PACKAGES_GZ_MD5 $PACKAGES_GZ_SIZE $COMPONENT/binary-$ARCH/Packages.gz
-
-SHA256:
- $PACKAGES_SHA256 $PACKAGES_SIZE $COMPONENT/binary-$ARCH/Packages
- $PACKAGES_GZ_SHA256 $PACKAGES_GZ_SIZE $COMPONENT/binary-$ARCH/Packages.gz
-EOF
-
-echo -e "${YELLOW}=== [Release file ===${NC}"
+echo -e "${YELLOW}=== Release file ===${NC}"
 cat "$APT_DIST_DIR/Release"
 
 echo
-echo -e "${YELLOW}=== [APT repository tree ===${NC}"
+echo -e "${YELLOW}=== APT repository tree ===${NC}"
 find "$APT_REPO_DIR" -type f -print | sort
 
 echo
-echo -e "${YELLOW}=== [Packages index ===${NC}"
+echo -e "${YELLOW}=== Packages index ===${NC}"
 cat "$APT_BINARY_DIR/Packages"
 
 echo -e "${CYAN}=== [6/6] Signing APT repository ===${NC}"
 
 if [ -z "${GPG_KEY:-}" ]; then
-    echo "ERROR: GPG_KEY is not set"
+    echo "${RED}Error: GPG_KEY is not set${NC}"
     exit 1
 fi
 
 if [ -z "${GPG_PASSPHRASE:-}" ]; then
-    echo "ERROR: GPG_PASSPHRASE is not set"
+    echo "${RED}Error: GPG_PASSPHRASE is not set${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}=== [Available signing keys ===${NC}"
+echo -e "${YELLOW}=== Available signing keys ===${NC}"
 gpg --batch --list-secret-keys
 
-echo -e "${YELLOW}=== [Signing Release file ===${NC}"
+echo -e "${YELLOW}=== Signing Release file ===${NC}"
 
 gpg --batch --yes \
     --pinentry-mode loopback \
@@ -462,7 +424,7 @@ gpg --batch --yes \
     --output "$APT_DIST_DIR/Release.gpg" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== [Creating InRelease ===${NC}"
+echo -e "${YELLOW}=== Creating InRelease ===${NC}"
 
 gpg --batch --yes \
     --pinentry-mode loopback \
@@ -472,13 +434,13 @@ gpg --batch --yes \
     --output "$APT_DIST_DIR/InRelease" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== [Verifying Release.gpg ===${NC}"
+echo -e "${YELLOW}=== Verifying Release.gpg ===${NC}"
 
 gpg --batch --verify \
     "$APT_DIST_DIR/Release.gpg" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== [Verifying InRelease ===${NC}"
+echo -e "${YELLOW}=== Verifying InRelease ===${NC}"
 
 gpg --batch --verify \
     "$APT_DIST_DIR/InRelease"

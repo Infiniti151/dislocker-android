@@ -35,6 +35,7 @@ RUN dnf update -y && \
         file \
         dpkg \
         dpkg-dev \
+        apt-utils \
         fakeroot \
         pinentry-tty \
         gnupg2-smime && \
