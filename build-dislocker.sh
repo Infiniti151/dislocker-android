@@ -290,9 +290,11 @@ mkdir -p \
 
 echo -e "${YELLOW}=== Copying binaries ===${NC}"
 
-cp -f \
-    "$INSTALL_DIR/bin/"* \
-    "$PKG_STAGE/$TERMUX_PREFIX/bin/"
+for binary in "$INSTALL_DIR/bin"/dislocker*; do
+    cp -f \
+        "$binary" \
+        "$PKG_STAGE/$TERMUX_PREFIX/bin/"
+done
 
 # ---------------------------------------------------------------------------
 # Copy libraries
@@ -302,10 +304,6 @@ echo -e "${YELLOW}=== Copying libraries ===${NC}"
 
 cp -a \
     "$INSTALL_DIR/lib/libdislocker.so"* \
-    "$PKG_STAGE/$TERMUX_PREFIX/lib/"
-
-cp -a \
-    "$INSTALL_DIR/lib/libfuse3.so"* \
     "$PKG_STAGE/$TERMUX_PREFIX/lib/"
 
 # ---------------------------------------------------------------------------
@@ -334,6 +332,7 @@ Version: $DISLOCKER_VERSION
 Architecture: $ARCH
 Maintainer: Infiniti151
 Installed-Size: $INSTALLED_SIZE
+Depends: libfuse3
 Section: utils
 Priority: optional
 Homepage: https://github.com/Aorimn/dislocker

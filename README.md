@@ -4,7 +4,7 @@
 
 [Dislocker](https://github.com/Aorimn/dislocker) is a tool for accessing BitLocker-encrypted volumes on Linux and other Unix-like systems. This project provides Dislocker cross-compiled for Android ARM64 and packaged for [Termux](https://termux.dev/).
 
-The package provides the Dislocker command-line utilities, including `dislocker`, `dislocker-fuse`, `dislocker-file`, `dislocker-metadata`, `dislocker-bek`, `fusermount3` along with the Dislocker and FUSE 3 shared libraries required at runtime.
+The package provides the Dislocker command-line utilities and uses the existing Termux FUSE 3 userspace tools provided by the `libfuse3` package.
 
 It was created because Dislocker is not currently available as a package in the official Termux repositories. This project provides a convenient way to install and update Dislocker through a dedicated APT repository for Termux.
 
