@@ -40,7 +40,7 @@ pkg upgrade
 
 The repository is signed using an OpenPGP key published through the Ubuntu keyserver.
 
-**Install `gnupg` (if not installed):**:
+**Install `gnupg` (if not installed):**
 ```bash
 pkg install gnupg
 ```
@@ -145,35 +145,42 @@ On Android, mount namespaces determine which processes can see filesystems and F
 
 Choose the workflow based on where you intend to access the decrypted volume:
 
-- **Termux-only:** Install `tsu` with `pkg install tsu`, then use `tsu` to enter a root shell configured for the Termux environment. Run the Dislocker commands from that shell. The resulting mounts remain isolated from Android applications and file managers.
+- **Termux-only:** Use `tsu` to enter a root shell configured for the Termux environment. Run the entire Dislocker workflow from that shell. The resulting mounts remain isolated from Android applications and file managers.
 
-- **Global / Android access:** Use `gsu` to execute the Dislocker commands. `gsu` runs each command using the Termux environment with root privileges in the **global mount namespace**, allowing resulting mounts to be accessed by Android processes that share that namespace, including compatible root-capable file managers.
+- **Global / Android access:** Use `gsu` to enter a root shell in the **global mount namespace**, then run the entire Dislocker workflow from that shell. This allows resulting mounts to be accessed by Android processes that share that namespace, including compatible root-capable file managers.
 
 `tsu` and `gsu` serve different purposes:
 
 - `tsu` — enters a Termux-configured root shell.
-- `gsu command` — executes a command as root in the global mount namespace.
+- `gsu` — enters a Termux-configured root shell in the global mount namespace.
+
+Install `tsu` with:
+
+```bash
+pkg install tsu
+````
 
 `gsu` is a small helper function provided by this documentation:
 
 ```bash
 gsu() {
     /system/bin/su -M -c \
-        "export PATH=/data/data/com.termux/files/usr/bin:\$PATH; \
-         export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:\$LD_LIBRARY_PATH; \
-         $*"
+        'export PATH=/data/data/com.termux/files/usr/bin:$PATH
+         export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:$LD_LIBRARY_PATH
+         exec /data/data/com.termux/files/usr/bin/bash'
 }
 ```
+
 Add this function to your shell configuration (for example, `~/.bashrc` or `~/.config/fish/config.fish`, depending on your shell) to make it available in future sessions.
 
 > [!important]
 > `gsu` is a convenience function provided by this documentation; it is not a standard Android or Termux command.
 
 > [!note]
-> The `-M` (`--mount-master`) option is provided by KernelSU and some other Android root solutions. It runs the command in the global mount namespace, allowing mounts created by the command to be visible to other processes that share that namespace.
+> The `-M` (`--mount-master`) option is provided by KernelSU and some other Android root solutions. It runs the shell in the global mount namespace, allowing mounts created from that shell to be visible to other processes that share that namespace.
 
 > [!warning]
-> When using the global workflow, use `gsu` for commands that create or remove mounts, including Dislocker and the subsequent filesystem mount. This keeps them in the same mount namespace and makes the resulting mount accessible outside Termux.
+> Choose either `tsu` or `gsu` for the entire Dislocker workflow. Do not switch between them, as they use different mount namespaces. Use `gsu` when the decrypted volume needs to be accessible outside Termux, including from compatible Android file managers.
 
 ### 1. Identify the encrypted volume
 
@@ -211,7 +218,7 @@ Depending on your Android device, storage may appear under paths such as:
 For example:
 
 ```bash
-gsu mkdir -p /data/local/tmp/dislocker /mnt/media_rw/bitlocker
+mkdir -p /data/local/tmp/dislocker /mnt/media_rw/bitlocker
 ```
 
 The first directory will contain the **`dislocker-file` output**, which is the decrypted virtual block device exposed by Dislocker.
@@ -223,7 +230,7 @@ The second directory will be the location where the decrypted filesystem is moun
 #### **Using BitLocker password:**
 
 ```bash
-gsu dislocker -V /dev/block/DEVICE -u"YOUR_PASSWORD" -- /data/local/tmp/dislocker
+dislocker -V /dev/block/DEVICE -u"YOUR_PASSWORD" -- /data/local/tmp/dislocker
 ```
 
 Replace:
@@ -237,8 +244,15 @@ with the correct BitLocker block device.
 For example:
 
 ```bash
-gsu dislocker -V /dev/block/sda2 -u"MyPassword" -- /data/local/tmp/dislocker
+dislocker -V /dev/block/sda2 -u"MyPassword" -- /data/local/tmp/dislocker
 ```
+
+For better security, omit the password from the command line and let Dislocker prompt for it:
+
+```bash
+dislocker -V /dev/block/sda2 -u -- /data/local/tmp/dislocker
+```
+Dislocker will prompt for the BitLocker password.
 
 After successful decryption, Dislocker should create:
 
@@ -247,7 +261,7 @@ After successful decryption, Dislocker should create:
 ```
 
 > [!warning]
-> Passing a password directly on the command line can expose it through shell history or process information. Avoid doing this when possible.
+> Passing a password directly on the command line can expose it through shell history or process information. Avoid including passwords directly in commands when possible.
 
 #### **Using BitLocker recovery key:**
 
@@ -256,13 +270,13 @@ A BitLocker recovery key is a unique 48-digit numerical password.
 Use:
 
 ```bash
-gsu dislocker -V /dev/block/DEVICE -p"YOUR_RECOVERY_KEY" -- /data/local/tmp/dislocker
+dislocker -V /dev/block/DEVICE -p"YOUR_RECOVERY_KEY" -- /data/local/tmp/dislocker
 ```
 
 For example:
 
 ```bash
-gsu dislocker -V /dev/block/sda2 -p"111111-222222-333333-444444-555555-666666-777777-888888" -- /data/local/tmp/dislocker
+dislocker -V /dev/block/sda2 -p"111111-222222-333333-444444-555555-666666-777777-888888" -- /data/local/tmp/dislocker
 ```
 
 #### **Using a BEK file:**
@@ -270,7 +284,7 @@ gsu dislocker -V /dev/block/sda2 -p"111111-222222-333333-444444-555555-666666-77
 If you have a BitLocker external key file (`.bek`), Dislocker can use it with:
 
 ```bash
-gsu dislocker -V /dev/block/DEVICE -f /path/to/recovery.bek -- /data/local/tmp/dislocker
+dislocker -V /dev/block/DEVICE -f /path/to/recovery.bek -- /data/local/tmp/dislocker
 ```
 
 ### 4. Mount the decrypted filesystem
@@ -280,33 +294,33 @@ Once Dislocker has successfully created `dislocker-file`, mount it with the appr
 #### **NTFS (requires `ntfs-3g` package):**
 
 ```bash
-gsu ntfs-3g /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
+ntfs-3g /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
 ```
 
 #### **ExFAT:**
 
 ```bash
-gsu mount -t exfat -o loop /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
+mount -t exfat -o loop /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
 ```
 
 #### **FAT32:**
 
 ```bash
-gsu mount -t vfat -o loop /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
+mount -t vfat -o loop /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
 ```
 
 The filesystem type depends on the filesystem contained inside the BitLocker volume.
 
-You can identify the filesystem with:
+You can identify the filesystem with `file`:
 
 ```bash
 file "/data/local/tmp/dislocker/dislocker-file"
 ```
 
-or, with root:
+or `blkid`:
 
 ```bash
-gsu blkid /data/local/tmp/dislocker/dislocker-file
+blkid /data/local/tmp/dislocker/dislocker-file
 ```
 
 ### 5. Accessing the mounted volume
@@ -325,19 +339,19 @@ If you mounted the filesystem using `tsu`, it is intended for **Termux-only acce
 Unmount the filesystem:
 
 ```bash
-gsu umount /mnt/media_rw/bitlocker
+umount /mnt/media_rw/bitlocker
 ```
 
 Then remove the Dislocker FUSE mount:
 
 ```bash
-gsu fusermount3 -u /data/local/tmp/dislocker
+fusermount3 -u /data/local/tmp/dislocker
 ```
 
 After unmounting, the directories can be removed if no longer needed:
 
 ```bash
-gsu rm -rf /data/local/tmp/dislocker /mnt/media_rw/bitlocker
+rm -rf /data/local/tmp/dislocker /mnt/media_rw/bitlocker
 ```
 
 ## 🤖 Android / Termux considerations
@@ -361,7 +375,8 @@ ls -l /dev/fuse
 If `/dev/fuse` is unavailable, Dislocker cannot provide its normal FUSE-based output. You'll need to use `dislocker-file` to mount the volume as a flat file.
 
 ```bash
-gsu dislocker-file -V /dev/block/sda2 -u"MyPassword" /data/local/tmp/dislocker-file
+gsu
+dislocker-file -V /dev/block/sda2 -u"MyPassword" /data/local/tmp/dislocker-file
 ```
 
 > [!warning]
@@ -439,9 +454,9 @@ This repository builds Dislocker for Android ARM64 using the Android NDK.
 
 The build script:
 
-1. Downloads and sets up Android NDK.
-2. Builds mbedTLS 3.x for Android ARM64.
-3. Builds Dislocker against the Android libraries.
+1. Downloads and sets up the Android NDK.
+2. Builds mbedTLS 3.x for Android ARM64 using the Android NDK.
+3. Builds Dislocker for Android ARM64 using the Android NDK, linking against the locally built mbedTLS 3.x and Termux's `libfuse3`.
 4. Packages the resulting binaries and libraries into a Termux-compatible `.deb`.
 5. Generates an APT repository.
 6. Generates `Packages` and `Packages.gz`.
@@ -477,14 +492,23 @@ APT repository generation and signing.
 
 **Requirements:**
 
-- [Podman](https://podman.io/)
-- [Task](https://taskfile.dev/)
+- [Podman](https://podman.io/) — runs the containerized build environment.
+- [Task](https://taskfile.dev/) — provides the commands defined in `Taskfile.yml`.
 
-Build Dislocker locally with:
+For the first build, rebuild the container image and Dislocker:
 
 ```bash
 task rebuild
 ```
+Available tasks:
+
+| Task | Description |
+| --- | --- |
+| `task build` | Build Dislocker using the existing builder image |
+| `task image` | Build the local builder image |
+| `task rebuild` | Rebuild the builder image and Dislocker |
+| `task clean` | Remove local build output, sources, and cache |
+
 Run `task --list` to see all available tasks.
 
 ## 📚 Source
