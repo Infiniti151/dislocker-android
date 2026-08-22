@@ -14,6 +14,7 @@ RUN dnf update -y && \
         unzip \
         pkg-config \
         file \
+        apt-utils \
         dpkg \
         dpkg-dev && \
     dnf clean all
