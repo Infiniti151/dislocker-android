@@ -384,8 +384,11 @@ echo -e "\n${YELLOW}=== Verifying InRelease ===${NC}"
 gpg --batch --verify \
     "$APT_DIST_DIR/InRelease"
 
-echo -e "\n${GREEN}===================================================="
-echo "Build complete!"
-echo "Signed APT repository generated at:"
-echo "$APT_REPO_DIR"
-echo -e "====================================================${NC}"
+echo -e "${GREEN}
+====================================================
+Build complete!
+
+Signed APT repository generated at:
+$APT_REPO_DIR
+====================================================
+${NC}"
