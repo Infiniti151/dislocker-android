@@ -19,7 +19,6 @@ ndk-cache/
 
 build/
 build-*/
-libfuse/build/
 mbedtls/build/
 dislocker/build/
 
@@ -27,7 +26,6 @@ dislocker/build/
 # Downloaded/cloned source trees
 # ==============================================================================
 
-libfuse/
 mbedtls/
 dislocker/
 
@@ -49,8 +47,6 @@ dislocker/
 *.keyring
 *.gpg
 *.asc
-
-dislocker-private.asc
 
 # ==============================================================================
 # Logs

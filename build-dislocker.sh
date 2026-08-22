@@ -17,20 +17,16 @@ CACHE_DIR="$WORK_DIR/cache"
 NDK_VERSION="r29"
 NDK_SRC="$CACHE_DIR/android-ndk-$NDK_VERSION"
 NDK="/opt/android-ndk-$NDK_VERSION"
+TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64"
 API="${API:-28}"
-TARGET="aarch64-linux-android"
+GENERATE_APT_REPO="${GENERATE_APT_REPO:-true}"
 
-echo -e "${CYAN}=== [1/4] Staging NDK $NDK_VERSION to native container storage (/opt) ===${NC}"
+echo -e "${CYAN}=== [1/5] Staging NDK $NDK_VERSION to native container storage (/opt) ===${NC}"
 mkdir -p "$WORK_DIR" "$INSTALL_DIR/lib" "$CACHE_DIR"
-
-# Android Bionic handles pthreads natively within libc.
-# We create stub linker scripts to safely absorb `-lpthread` and `-lrt` flags.
-echo 'INPUT(-lc)' > "$INSTALL_DIR/lib/libpthread.so"
-echo 'INPUT(-lc)' > "$INSTALL_DIR/lib/librt.so"
 
 # --- Download NDK if not cached ---
 if [ ! -d "$NDK_SRC" ]; then
-    echo "Downloading Android NDK ($NDK_VERSION)..."
+    echo -e "${YELLOW}Downloading Android NDK ($NDK_VERSION)...${NC}"
     wget -q --show-progress \
       "https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip" \
       -O "$CACHE_DIR/ndk.zip"
@@ -40,11 +36,9 @@ fi
 
 # --- Copy NDK into /opt ---
 if [ ! -d "$NDK" ]; then
-    echo "Copying NDK from cache volume to /opt..."
+    echo -e "${YELLOW}Copying NDK from cache volume to /opt...${NC}"
     cp -a "$NDK_SRC" /opt/
 fi
-
-TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64"
 
 echo -e "${YELLOW}Granting execution permissions to toolchain binaries...${NC}"
 chmod -R +x "$TOOLCHAIN/bin/"
@@ -56,112 +50,9 @@ if ! "$TOOLCHAIN/bin/clang" --version > /dev/null 2>&1; then
     exit 1
 fi
 
-echo -e "${YELLOW}NDK environment validated successfully in /opt.${NC}"
+echo -e "${YELLOW}NDK environment validated successfully in /opt.${NC}\n"
 
-# --- Meson cross-file ---
-cat << EOF > /tmp/android-cross.txt
-[binaries]
-c = ['$TOOLCHAIN/bin/clang', '--target=${TARGET}${API}']
-cpp = ['$TOOLCHAIN/bin/clang++', '--target=${TARGET}${API}']
-ar = '$TOOLCHAIN/bin/llvm-ar'
-strip = '$TOOLCHAIN/bin/llvm-strip'
-pkgconfig = 'pkg-config'
-
-[host_machine]
-system = 'linux'
-cpu_family = 'x86_64'
-cpu = 'x86_64'
-endian = 'little'
-EOF
-
-echo -e "${CYAN}=== [2/4] Cross-Compiling libfuse 3.x ===${NC}"
-cd "$WORK_DIR"
-
-# Dynamically fetch remote tags, filter for semantic v3.x.x tags, sort, and select the latest
-echo -e "${YELLOW}Detecting latest libfuse v3 release tag...${NC}"
-
-LATEST_V3_TAG=$(git ls-remote --tags https://github.com/libfuse/libfuse.git \
-  | grep -o 'refs/tags/fuse-3\.[0-9.]*' \
-  | cut -d/ -f3 \
-  | sort -V \
-  | tail -n1)
-
-# Fallback safeguard in case git network lookup fails
-if [ -z "$LATEST_V3_TAG" ]; then
-    echo "Warning: Could not auto-detect remote tags. Falling back to fuse-3.18.2."
-    LATEST_V3_TAG="fuse-3.18.2"
-fi
-
-echo -e "${YELLOW}Selected libfuse Tag: ${LATEST_V3_TAG}${NC}"
-
-# Clone or checkout the specific tag directly
-if [ ! -d "libfuse" ]; then
-    git clone --depth 1 --branch "$LATEST_V3_TAG" https://github.com/libfuse/libfuse.git
-else
-    cd libfuse
-    git fetch --tags --depth 1 origin tag "$LATEST_V3_TAG"
-    git checkout "$LATEST_V3_TAG"
-    cd ..
-fi
-
-cd libfuse
-
-# 1. Safely remove librt lookup
-# 2. Inject pthread cancellation fallbacks for Android into lib/fuse_i.h
-# 3. Neutralize install_helper.sh so it exits cleanly without device-node errors
-python3 -c "
-import os
-
-path_meson = 'lib/meson.build'
-if os.path.exists(path_meson):
-    with open(path_meson, 'r') as f:
-        lines = f.readlines()
-    new_lines = [line for line in lines if 'find_library(\\'rt\\'' not in line and \"find_library('rt'\" not in line]
-    with open(path_meson, 'w') as f:
-        f.writelines(new_lines)
-
-path_header = 'lib/fuse_i.h'
-if os.path.exists(path_header):
-    with open(path_header, 'r') as f:
-        content = f.read()
-
-    stubs = '''
-#ifdef __ANDROID__
-#ifndef PTHREAD_CANCEL_ENABLE
-#define PTHREAD_CANCEL_ENABLE 0
-#endif
-#ifndef PTHREAD_CANCEL_DISABLE
-#define PTHREAD_CANCEL_DISABLE 0
-#endif
-#ifndef pthread_setcancelstate
-#define pthread_setcancelstate(state, oldstate) (0)
-#endif
-#ifndef pthread_cancel
-#define pthread_cancel(thread) (0)
-#endif
-#endif
-'''
-    if '__ANDROID__' not in content:
-        with open(path_header, 'w') as f:
-            f.write(stubs + '\n' + content)
-
-path_script = 'util/install_helper.sh'
-if os.path.exists(path_script):
-    with open(path_script, 'w') as f:
-        f.write('#!/bin/sh\nexit 0\n')
-"
-
-rm -rf build-dislocker
-meson setup build-dislocker \
-  --cross-file /tmp/android-cross.txt \
-  --prefix="$INSTALL_DIR" \
-  -Dexamples=false \
-  -Dtests=false
-
-ninja -C build-dislocker
-ninja -C build-dislocker install
-
-echo -e "${CYAN}=== [2/4] Cross-Compiling mbedTLS 3.x for Android ARM64 ===${NC}"
+echo -e "${CYAN}=== [2/5] Cross-Compiling mbedTLS 3.x for Android ARM64 ===${NC}"
 cd "$WORK_DIR"
 
 # Dynamically fetch remote tags, filter for semantic v3.x.x tags, sort, and select the latest
@@ -175,7 +66,7 @@ LATEST_V3_TAG=$(git ls-remote --tags https://github.com/Mbed-TLS/mbedtls.git \
 
 # Fallback safeguard in case git network lookup fails
 if [ -z "$LATEST_V3_TAG" ]; then
-    echo "Warning: Could not auto-detect remote tags. Falling back to v3.6.0."
+    echo -e "${YELLOW}Warning: Could not auto-detect remote tags. Falling back to v3.6.0.${NC}"
     LATEST_V3_TAG="v3.6.0"
 fi
 
@@ -194,7 +85,9 @@ fi
 cd mbedtls
 git submodule update --init --recursive
 
-rm -rf build-dislocker && mkdir -p build-dislocker && cd build-dislocker
+rm -rf build && mkdir -p build && cd build
+
+echo -e "\n${YELLOW}=== Compiling MbedTLS ===${NC}"
 cmake .. \
   -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI=arm64-v8a \
@@ -204,10 +97,10 @@ cmake .. \
   -DENABLE_PROGRAMS=OFF \
   -DENABLE_TESTING=OFF
 
-make -j$(nproc)
-make install
+cmake --build . --parallel
+cmake --install .
 
-echo -e "${CYAN}=== [4/4] Cross-Compiling Dislocker ===${NC}"
+echo -e "\n${CYAN}=== [3/5] Cross-Compiling Dislocker ===${NC}"
 cd "$WORK_DIR"
 if [ ! -d "dislocker" ]; then
     git clone https://github.com/Aorimn/dislocker.git
@@ -220,22 +113,44 @@ DISLOCKER_DATE="$(git show -s --format=%cd --date=format:%Y%m%d "$DISLOCKER_COMM
 
 DISLOCKER_VERSION="0.0~git${DISLOCKER_DATE}.${DISLOCKER_SHORT_COMMIT}"
 
-# Create man/android target directory and populate/touch man pages to satisfy packaging gzip rules
+# CMake expects platform-specific man pages under man/<platform>/.
+# Upstream provides Linux man pages but no Android-specific set,
+# so use the Linux pages to satisfy the Android build.
+# These are build-time files and are not packaged for Termux.
 mkdir -p man/android
-for f in man/*.1; do
-    if [ -f "$f" ]; then
-        cp "$f" man/android/
-    fi
-done
-touch man/android/dislocker.1 man/android/dislocker-file.1 man/android/dislocker-fuse.1 man/android/dislocker-metadata.1 man/android/dislocker-bek.1
+cp man/linux/*.1 man/android/
 
-export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$INSTALL_DIR/lib/aarch64-linux-android/pkgconfig"
-export CMAKE_PREFIX_PATH="$INSTALL_DIR"
+# Android Bionic handles pthreads natively within libc.
+# We create stub linker script to safely absorb the `-lpthread` flag.
+echo 'INPUT(-lc)' > "$INSTALL_DIR/lib/libpthread.so"
 
 # Automatically locate MbedTLS CMake configuration directory
 MBEDTLS_DIR_PATH=$(dirname "$(find "$INSTALL_DIR" -name "MbedTLSConfig.cmake" | head -n 1)")
 
+# ---------------------------------------------------------------------------
+# Configure Termux FUSE 3
+# ---------------------------------------------------------------------------
+
+TERMUX_FUSE3_ROOT="/opt/termux-fuse3"
+TERMUX_FUSE3_PREFIX="$TERMUX_FUSE3_ROOT/data/data/com.termux/files/usr"
+
+export PKG_CONFIG_SYSROOT_DIR="$TERMUX_FUSE3_ROOT"
+export PKG_CONFIG_LIBDIR="$TERMUX_FUSE3_PREFIX/lib/pkgconfig"
+export PKG_CONFIG_PATH="$TERMUX_FUSE3_PREFIX/lib/pkgconfig"
+
+export CMAKE_PREFIX_PATH="$INSTALL_DIR"
+
+echo -e "\n${YELLOW}=== Termux FUSE 3 configuration ===${NC}"
+
+echo "FUSE3 prefix: $TERMUX_FUSE3_PREFIX"
+echo "FUSE3 pkgconfig: $TERMUX_FUSE3_PREFIX/lib/pkgconfig"
+echo "FUSE3 version: $(pkg-config --modversion fuse3)"
+echo "FUSE3 cflags: $(pkg-config --cflags fuse3)"
+echo "FUSE3 libs: $(pkg-config --libs fuse3)"
+
 rm -rf build && mkdir -p build && cd build
+
+echo -e "\n${YELLOW}=== Compiling Dislocker ===${NC}"
 cmake .. \
   -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI=arm64-v8a \
@@ -245,13 +160,25 @@ cmake .. \
   -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
   -DCMAKE_EXE_LINKER_FLAGS="-L$INSTALL_DIR/lib" \
   -DCMAKE_SHARED_LINKER_FLAGS="-L$INSTALL_DIR/lib" \
-  -DMbedTLS_DIR="$MBEDTLS_DIR_PATH" \
-  -DUSE_FUSE3=ON
+  -DMbedTLS_DIR="$MBEDTLS_DIR_PATH"
 
-make -j$(nproc)
-make install
+cmake --build . --parallel
+cmake --install .
 
-echo -e "${CYAN}=== [5/6] Generating APT Repository ===${NC}"
+echo -e "\n${YELLOW}=== Verifying FUSE linkage ===${NC}"
+
+readelf -d "$INSTALL_DIR/bin/dislocker" | grep NEEDED
+
+echo -e "\n${YELLOW}=== Verifying FUSE library ===${NC}"
+
+ls -l "$TERMUX_FUSE3_PREFIX/lib/libfuse3.so"
+
+if [ "$GENERATE_APT_REPO" = "false" ]; then
+    echo -e "\n${GREEN}=== Skipping APT repository generation and signing (local build) ===${NC}"
+    exit 0
+fi
+
+echo -e "${CYAN}=== [4/5] Generating APT Repository ===${NC}"
 
 TERMUX_PREFIX="/data/data/com.termux/files/usr"
 PKG_STAGE="$WORK_DIR/pkg-staging"
@@ -267,13 +194,13 @@ APT_DIST_DIR="$APT_REPO_DIR/dists/$DIST"
 APT_BINARY_DIR="$APT_DIST_DIR/$COMPONENT/binary-$ARCH"
 APT_POOL_DIR="$APT_REPO_DIR/pool/$COMPONENT/d/dislocker"
 
-echo "Package version: $DISLOCKER_VERSION"
+echo -e "\n${YELLOW}Package version: $DISLOCKER_VERSION${NC}"
 
 # ---------------------------------------------------------------------------
 # Clean previous package/repository output
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Preparing package and APT repository directories ===${NC}"
+echo -e "\n${YELLOW}=== Preparing package and APT repository directories ===${NC}"
 
 rm -rf "$PKG_STAGE"
 
@@ -288,19 +215,17 @@ mkdir -p \
 # Copy binaries
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Copying binaries ===${NC}"
+echo -e "\n${YELLOW}=== Copying binaries ===${NC}"
 
-for binary in "$INSTALL_DIR/bin"/dislocker*; do
-    cp -f \
-        "$binary" \
-        "$PKG_STAGE/$TERMUX_PREFIX/bin/"
-done
+cp -a \
+    "$INSTALL_DIR/bin"/dislocker* \
+    "$PKG_STAGE/$TERMUX_PREFIX/bin/"
 
 # ---------------------------------------------------------------------------
 # Copy libraries
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Copying libraries ===${NC}"
+echo -e "\n${YELLOW}=== Copying libraries ===${NC}"
 
 cp -a \
     "$INSTALL_DIR/lib/libdislocker.so"* \
@@ -310,7 +235,7 @@ cp -a \
 # Permissions
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Setting permissions ===${NC}"
+echo -e "\n${YELLOW}=== Setting permissions ===${NC}"
 
 chmod 755 \
     "$PKG_STAGE/$TERMUX_PREFIX/bin/"*
@@ -322,7 +247,7 @@ chmod 644 \
 # Debian control file
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Creating package control file ===${NC}"
+echo -e "\n${YELLOW}=== Creating package control file ===${NC}"
 
 INSTALLED_SIZE="$(du -sk --apparent-size "$PKG_STAGE" | cut -f1)"
 
@@ -344,7 +269,7 @@ EOF
 # Build .deb
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Building .deb ===${NC}"
+echo -e "\n${YELLOW}=== Building .deb ===${NC}"
 
 DEB_FILE_NAME="dislocker_${DISLOCKER_VERSION}_${ARCH}.deb"
 DEB_FILE="$APT_POOL_DIR/$DEB_FILE_NAME"
@@ -363,7 +288,7 @@ echo "DEB_FILE=$DEB_FILE" >> "$GITHUB_ENV"
 # Generate Packages index
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Generating Packages index ===${NC}"
+echo -e "\n${YELLOW}=== Generating Packages index ===${NC}"
 
 (
     cd "$APT_REPO_DIR"
@@ -383,7 +308,7 @@ gzip -9 -c \
 # Generate Release metadata
 # ---------------------------------------------------------------------------
 
-echo -e "${YELLOW}=== Generating Release file ===${NC}"
+echo -e "\n${YELLOW}=== Generating Release file ===${NC}"
 
 cat > "$WORK_DIR/apt-release.conf" <<EOF
 APT::FTPArchive::Release::Origin "$REPO_NAME";
@@ -401,33 +326,33 @@ apt-ftparchive \
     "$APT_DIST_DIR" \
     > "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== Release file ===${NC}"
+echo -e "\n${YELLOW}=== Release file ===${NC}"
 cat "$APT_DIST_DIR/Release"
 
 echo
-echo -e "${YELLOW}=== APT repository tree ===${NC}"
+echo -e "\n${YELLOW}=== APT repository tree ===${NC}"
 find "$APT_REPO_DIR" -type f -print | sort
 
 echo
-echo -e "${YELLOW}=== Packages index ===${NC}"
+echo -e "\n${YELLOW}=== Packages index ===${NC}"
 cat "$APT_BINARY_DIR/Packages"
 
-echo -e "${CYAN}=== [6/6] Signing APT repository ===${NC}"
+echo -e "\n${CYAN}=== [5/5] Signing APT repository ===${NC}"
 
 if [ -z "${GPG_KEY:-}" ]; then
-    echo "${RED}Error: GPG_KEY is not set${NC}"
+    echo -e "${RED}Error: GPG_KEY is not set.${NC}"
     exit 1
 fi
 
 if [ -z "${GPG_PASSPHRASE:-}" ]; then
-    echo "${RED}Error: GPG_PASSPHRASE is not set${NC}"
+    echo -e "${RED}Error: GPG_PASSPHRASE is not set.${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}=== Available signing keys ===${NC}"
+echo -e "\n${YELLOW}=== Available signing keys ===${NC}"
 gpg --batch --list-secret-keys
 
-echo -e "${YELLOW}=== Signing Release file ===${NC}"
+echo -e "\n${YELLOW}=== Signing Release file ===${NC}"
 
 gpg --batch --yes \
     --pinentry-mode loopback \
@@ -438,7 +363,7 @@ gpg --batch --yes \
     --output "$APT_DIST_DIR/Release.gpg" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== Creating InRelease ===${NC}"
+echo -e "\n${YELLOW}=== Creating InRelease ===${NC}"
 
 gpg --batch --yes \
     --pinentry-mode loopback \
@@ -448,20 +373,19 @@ gpg --batch --yes \
     --output "$APT_DIST_DIR/InRelease" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== Verifying Release.gpg ===${NC}"
+echo -e "\n${YELLOW}=== Verifying Release.gpg ===${NC}"
 
 gpg --batch --verify \
     "$APT_DIST_DIR/Release.gpg" \
     "$APT_DIST_DIR/Release"
 
-echo -e "${YELLOW}=== Verifying InRelease ===${NC}"
+echo -e "\n${YELLOW}=== Verifying InRelease ===${NC}"
 
 gpg --batch --verify \
     "$APT_DIST_DIR/InRelease"
 
-echo
-echo "${GREEN}===================================================="
+echo -e "\n${GREEN}===================================================="
 echo "Build complete!"
 echo "Signed APT repository generated at:"
 echo "$APT_REPO_DIR"
-echo "====================================================${NC}"
+echo -e "====================================================${NC}"

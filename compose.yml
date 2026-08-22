@@ -1,0 +1,16 @@
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: root
+    shm_size: 2gb
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:Z
+      - dislocker-cache:/workspace/cache
+    environment:
+      API: "28"
+
+volumes:
+  dislocker-cache:

@@ -1,0 +1,24 @@
+version: "3"
+
+tasks:
+  build:
+    desc: Build Dislocker locally without APT repository generation/signing
+    cmds:
+      - podman compose run --rm -e GENERATE_APT_REPO=false builder bash ./build-dislocker.sh
+
+  image:
+    desc: Build the local builder image
+    cmds:
+      - podman compose build builder
+
+  clean:
+    desc: Remove local build directories, output, and cache
+    cmds:
+      - rm -rf mbedtls dislocker output cache pkg-staging
+
+  rebuild:
+    desc: Rebuild the builder image and Dislocker
+    deps:
+      - image
+    cmds:
+      - task: build
