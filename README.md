@@ -141,23 +141,27 @@ A typical workflow is:
 
 On Android, mount namespaces determine which processes can see filesystems and FUSE mounts.
 
-Choose **one of the following workflows** depending on where you intend to access the decrypted volume:
+Choose the workflow based on where you intend to access the decrypted volume:
 
-* **Termux-only:** Use `tsu` for the entire Dislocker workflow. The decrypted volume remains accessible from Termux but is isolated from Android applications and file managers.
-* **Global / Android access:** Use `gsu` for the entire Dislocker workflow. This runs commands in the **global mount namespace**, allowing the resulting decrypted volume and filesystem mount to be accessed by Android processes that share that namespace, including compatible root-capable file managers.
+- **Termux-only:** Install `tsu` with `pkg install tsu`, then use `tsu` to enter a root shell configured for the Termux environment. Run the Dislocker commands from that shell. The resulting mounts remain isolated from Android applications and file managers.
 
-`gsu` is a small helper function that runs commands using the Termux environment with root privileges in the **global mount namespace**:
+- **Global / Android access:** Use `gsu` to execute the Dislocker commands. `gsu` runs each command using the Termux environment with root privileges in the **global mount namespace**, allowing resulting mounts to be accessed by Android processes that share that namespace, including compatible root-capable file managers.
+
+`tsu` and `gsu` serve different purposes:
+
+- `tsu` — enters a Termux-configured root shell.
+- `gsu command` — executes a command as root in the global mount namespace.
+
+`gsu` is a small helper function provided by this documentation:
 
 ```bash
 gsu() {
     /system/bin/su -M -c \
-        'export PATH=/data/data/com.termux/files/usr/bin:$PATH
-         export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:$LD_LIBRARY_PATH
-         "$@"' \
-        sh "$@"
+        "export PATH=/data/data/com.termux/files/usr/bin:\$PATH; \
+         export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:\$LD_LIBRARY_PATH; \
+         $*"
 }
 ```
-
 Add this function to your shell configuration (for example, `~/.bashrc` or `~/.config/fish/config.fish`, depending on your shell) to make it available in future sessions.
 
 > [!important]
@@ -167,7 +171,7 @@ Add this function to your shell configuration (for example, `~/.bashrc` or `~/.c
 > The `-M` (`--mount-master`) option is provided by KernelSU and some other Android root solutions. It runs the command in the global mount namespace, allowing mounts created by the command to be visible to other processes that share that namespace.
 
 > [!warning]
-> Do not mix `tsu` and `gsu` within the same Dislocker workflow when using the global workflow. In particular, run Dislocker and the subsequent filesystem mount with `gsu` so that they operate in the same mount namespace.
+> When using the global workflow, use `gsu` for commands that create or remove mounts, including Dislocker and the subsequent filesystem mount. This keeps them in the same mount namespace and makes the resulting mount accessible outside Termux.
 
 ### 1. Identify the encrypted volume
 
@@ -176,7 +180,7 @@ First identify the block device containing the BitLocker volume with `lsblk` (re
 For example:
 
 ```bash
-tsu
+gsu
 lsblk
 ```
 
@@ -355,7 +359,7 @@ ls -l /dev/fuse
 If `/dev/fuse` is unavailable, Dislocker cannot provide its normal FUSE-based output. You'll need to use `dislocker-file` to mount the volume as a flat file.
 
 ```bash
-su -c "dislocker-file -V /dev/block/sda2 -u'uMyPassword' /data/local/tmp/dislocker-file"
+gsu dislocker-file -V /dev/block/sda2 -u"MyPassword" /data/local/tmp/dislocker-file
 ```
 
 > [!warning]
