@@ -80,7 +80,7 @@ gpg --export 77E6A5281DF5538DB12A98F2B31498758A8AF8A5 \
 
 ```bash
 echo "deb [signed-by=$PREFIX/etc/apt/keyrings/dislocker-android.gpg] https://Infiniti151.github.io/dislocker-android stable main" \
-    > "$PREFIX/etc/apt/sources.list.d/dislocker.list"
+    > "$PREFIX/etc/apt/sources.list.d/dislocker-android.list"
 ```
 
 **Update the package lists:**
@@ -416,7 +416,7 @@ pkg uninstall dislocker
 **Remove the repository:**
 
 ```bash
-rm "$PREFIX/etc/apt/sources.list.d/dislocker.list"
+rm "$PREFIX/etc/apt/sources.list.d/dislocker-android.list"
 ```
 
 **Remove the repository signing key:**
