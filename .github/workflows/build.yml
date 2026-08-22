@@ -24,6 +24,12 @@ jobs:
       id-token: write
       artifact-metadata: write
 
+    env:
+      CYAN: "\033[36m"
+      YELLOW: "\033[33m"
+      GREEN: "\033[32m"
+      NC: "\033[0m"
+
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -86,16 +92,16 @@ jobs:
 
           rm -rf "$APT_WORKTREE"
 
-          echo "=== Fetching apt-repo branch ==="
+          echo -e "${CYAN}=== Fetching apt-repo branch ===${NC}"
 
           if git fetch origin apt-repo:refs/remotes/origin/apt-repo; then
-            echo "Existing apt-repo branch found."
+            echo -e "${YELLOW}Existing apt-repo branch found.${NC}"
 
             git worktree add \
               "$APT_WORKTREE" \
               origin/apt-repo
           else
-            echo "No apt-repo branch exists. Creating it."
+            echo -e "${YELLOW}No apt-repo branch exists. Creating it.${NC}"
 
             git worktree add \
               --detach \
@@ -114,7 +120,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          echo "=== Clearing old repository contents ==="
+          echo -e "\n${CYAN}=== Clearing old repository contents ===${NC}"
 
           find "$APT_WORKTREE" \
             -mindepth 1 \
@@ -122,44 +128,44 @@ jobs:
             ! -name ".git" \
             -exec rm -rf {} +
 
-          echo "=== Copying generated APT repository ==="
+          echo -e "\n${CYAN}=== Copying generated APT repository ===${NC}"
 
           cp -a \
             "$GITHUB_WORKSPACE/output/apt-repo/." \
             "$APT_WORKTREE/"
 
-          echo "=== Repository contents ==="
+          echo -e "\n${CYAN}=== Repository contents ===${NC}"
 
           find "$APT_WORKTREE" \
             -type f \
             -print \
             | sort
 
-          echo "=== Git status ==="
+          echo -e "\n${CYAN}=== Git status ===${NC}"
 
           git status --short
 
           git add .
 
-          echo "=== Staged changes ==="
+          echo -e "\n${CYAN}=== Staged changes ===${NC}"
 
           git diff --cached --stat
 
           if git diff --cached --quiet; then
-            echo "No changes to apt-repo branch."
+            echo -e "${YELLOW}No changes to apt-repo branch.${NC}"
             exit 0
           fi
 
-          echo "=== Committing APT repository ==="
+          echo -e "\n${CYAN}=== Committing APT repository ===${NC}"
 
           git commit \
             -m "Update APT repository for ${GITHUB_REF_NAME}"
 
-          echo "=== Pushing apt-repo branch ==="
+          echo -e "\n${CYAN}=== Pushing apt-repo branch ===${NC}"
 
           git push origin HEAD:apt-repo
 
-          echo "=== Verifying remote apt-repo branch ==="
+          echo -e "\n${CYAN}=== Verifying remote apt-repo branch ===${NC}"
 
           git ls-remote --heads origin apt-repo
 

@@ -178,7 +178,7 @@ if [ "$GENERATE_APT_REPO" = "false" ]; then
     exit 0
 fi
 
-echo -e "${CYAN}=== [4/5] Generating APT Repository ===${NC}"
+echo -e "\n${CYAN}=== [4/5] Generating APT Repository ===${NC}"
 
 TERMUX_PREFIX="/data/data/com.termux/files/usr"
 PKG_STAGE="$WORK_DIR/pkg-staging"
@@ -337,7 +337,7 @@ echo
 echo -e "\n${YELLOW}=== Packages index ===${NC}"
 cat "$APT_BINARY_DIR/Packages"
 
-echo -e "\n${CYAN}=== [5/5] Signing APT repository ===${NC}"
+echo -e "${CYAN}=== [5/5] Signing APT repository ===${NC}"
 
 if [ -z "${GPG_KEY:-}" ]; then
     echo -e "${RED}Error: GPG_KEY is not set.${NC}"
