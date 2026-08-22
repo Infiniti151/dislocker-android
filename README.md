@@ -6,7 +6,9 @@
 
 The package provides the Dislocker command-line utilities and uses the existing Termux FUSE 3 userspace tools provided by the `libfuse3` package.
 
-It was created because Dislocker is not currently available as a package in the official Termux repositories. This project provides a convenient way to install and update Dislocker through a dedicated APT repository for Termux.
+It was created because Dislocker is not currently available as a package in the official Termux repositories. Although Termux provides `cryptsetup` with BitLocker support, its BitLocker functionality requires the Linux `dm-zero` kernel module, which is generally unavailable on Android kernels. Dislocker provides an alternative userspace approach for accessing BitLocker volumes on rooted Android devices.
+
+This project provides a convenient way to install and update Dislocker through a dedicated APT repository for Termux.
 
 ## 📋 Requirements
 
