@@ -279,6 +279,9 @@ For example:
 dislocker -V /dev/block/sda2 -p"111111-222222-333333-444444-555555-666666-777777-888888" -- /data/local/tmp/dislocker
 ```
 
+> [!warning]
+> The command will fail without hyphens in the recovery key. They are required.
+
 #### **Using a BEK file:**
 
 If you have a BitLocker external key file (`.bek`), Dislocker can use it with:
