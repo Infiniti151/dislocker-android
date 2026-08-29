@@ -294,10 +294,14 @@ dislocker -V /dev/block/DEVICE -f /path/to/recovery.bek -- /data/local/tmp/dislo
 
 Once Dislocker has successfully created `dislocker-file`, mount it with the appropriate filesystem driver.
 
-#### **NTFS (requires `ntfs-3g` package):**
+#### **NTFS:**
 
 ```bash
-ntfs-3g /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
+# Using ntfs3 (if supported by kernel)
+mount -t ntfs3 -o uid=1023,gid=1023,fmask=000,dmask=000 /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker
+
+# OR using Termux ntfs-3g
+ntfs-3g /data/local/tmp/dislocker/dislocker-file /mnt/media_rw/bitlocker -o uid=1023,gid=1023,fmask=000,dmask=000
 ```
 
 #### **ExFAT:**
