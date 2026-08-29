@@ -4,31 +4,31 @@ Hash: SHA512
 Architectures: aarch64
 Codename: stable
 Components: main
-Date: Sat, 22 Aug 2026 12:08:28 +0000
+Date: Sat, 29 Aug 2026 10:49:50 +0000
 Description: Dislocker APT repository for Termux Android ARM64
 Label: dislocker-android
 Origin: dislocker-android
 Suite: stable
 MD5Sum:
- 6c270604d1d7d6ada9b2478fafa64faf              223 Release
- e8edf909d850f52e1c06fbd87cf3687c              592 main/binary-aarch64/Packages
- 0d2cab2aea29f2c7c724528dbea2d174              427 main/binary-aarch64/Packages.gz
+ ff2fb8361f8ca461d3f811ac743352b5              223 Release
+ 035b4fa6e0df6c6384e5d27245e33c5b              592 main/binary-aarch64/Packages
+ dfbfc3c0494551ea88c3c0b20a9f1ee8              426 main/binary-aarch64/Packages.gz
 SHA1:
- 6b0baa2e0339abd452a765809c36e37e2f8560c9              223 Release
- 0e859c56e9d3e650d1bfe48fe2ea7427bb0c7596              592 main/binary-aarch64/Packages
- 2678698be59e37ce02441add7c1d68801facdae0              427 main/binary-aarch64/Packages.gz
+ 92e29f300a7acf923248d92340dbdda09edbf50d              223 Release
+ 905fca059fb4cd065ba20eb3ea97551f260658e6              592 main/binary-aarch64/Packages
+ f9f4e8d81c8a4fd76a9d449114b8065041825ddb              426 main/binary-aarch64/Packages.gz
 SHA256:
- fce3116a8fd5a482522f57370e022015aaf005a89de2eddfa5788578a07589a8              223 Release
- 174718228605c9f113fa442b08a88c6d9bcb4968abc2c0d297c43051bf537b7f              592 main/binary-aarch64/Packages
- 09e4fa7d1a42a08979f66936169cf7ea59ddc50fb8c086b2000c2e42637a2288              427 main/binary-aarch64/Packages.gz
+ eb39143bead3b2bc6e49cd19d0cfd224f7bb30eaae582be809861348306f124a              223 Release
+ d0ed7edda03e792a1b96f268cf4d200422974c3f27241f4992ec0a72441dd727              592 main/binary-aarch64/Packages
+ 5c330793f59a3fab5ce6ff3e7b2d28ffe44ee84d645e6d69306f7392e854f088              426 main/binary-aarch64/Packages.gz
 SHA512:
- d438e01a780e45e7808af6dbcaf422bed78994a1f625106c2c77a9cdf9218a5bc89f86e4c76ab643326353080b76cbb498e0ee123d0c0e7084f91b3fe08464a1              223 Release
- 3c800bb05d242abb6287e088b31981f0a6f428bf253768874072cefb5e7a584a63c7f9d59ffd5374c70e7ed8c07ecc503ac7d40798eb7f4747f246e372aad9ae              592 main/binary-aarch64/Packages
- ccbeadfa4b9f51683ca08de3915b7969ec50a84734640d19492ae76032cae23101688d4ea5e3b793c12595d8492d82cb093890336411d77fa9814c3c09f2618e              427 main/binary-aarch64/Packages.gz
+ f71cd3d4fe9b9ce31030056be2eef671781182e4c46127ab7d136384709edced479c6ab3cc2ed212acd88655f07138abe18cb9f2e93ac161928dbefc87659536              223 Release
+ 6eb5de7dde92a4d6bdddfbb1979e3ca7583173fd17d80ea0ff280ddc128148c898a6cd5dab89a488859d068b41b8f6dc639c813c87f754e4daefe317cc2d3c6d              592 main/binary-aarch64/Packages
+ 78808afdf7f1ff000114b2f965b88ee564d5ef334bf529dbb04344a3c381b39a42b8ab8d52b3b76f59bf5bfc52e950a7a0a344d33fed4fa0e6b52e1d584eafe7              426 main/binary-aarch64/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYKAB0WIQR35qUoHfVTjbEqmPKzFJh1ior4pQUCaomRPQAKCRCzFJh1ior4
-pZMiAP9Jd4R2HYtIkcJXguWuwk2KDzRjli+naxqeZwJ6geOvmQEAs8H+zowjvAeF
-ob7x5DVsmRX+/G5p57+W3HbYxIRftgw=
-=pCsc
+iHUEARYKAB0WIQR35qUoHfVTjbEqmPKzFJh1ior4pQUCapK5TgAKCRCzFJh1ior4
+pTJSAQDE2XHgnSl/qQ0dNVRQj4/RmaNjWa0IQ4b0eU209uXojAEA2WvuGWeKq/ij
+NzmPp6RrmnDvENQnNz72wCrgdlhBOw4=
+=0XIW
 -----END PGP SIGNATURE-----
